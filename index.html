@@ -541,26 +541,104 @@ Thank you for holding up a mirror to me, for wanting more from me, and for lovin
   }
 ];
 
-/* ============ COUNTDOWN ============ */
+//* ============ COUNTDOWN ============ */
+let celebrated = false;
+
+function triggerCelebration() {
+  if (celebrated) return;
+  celebrated = true;
+  
+  // 1. Dynamically update the Hero Heading and Subtitle
+  const heroH1 = document.querySelector('.hero h1');
+  if (heroH1) {
+    heroH1.innerHTML = `Happy 5th <br><span class="highlight">Anniversary!</span>`;
+  }
+  const heroSub = document.querySelector('.hero-sub');
+  if (heroSub) {
+    heroSub.innerHTML = `Five years down, and my heart is still completely yours. No more counting down — we made it. ❤️`;
+  }
+  
+  // 2. Smoothly swap out the countdown numbers for a beautiful note
+  const countdownWrap = document.getElementById('countdown');
+  if (countdownWrap) {
+    countdownWrap.innerHTML = `
+      <div style="font-family:'Cormorant Garamond', serif; font-style:italic; font-size: clamp(1.6rem, 4vw, 2.4rem); color: var(--gold); text-align: center; margin-top: 1rem; opacity: 0; transform: translateY(10px); animation: fadeInMessage 2s forwards 0.5s;">
+        Today, tomorrow, and forever.
+      </div>
+    `;
+  }
+  
+  // 3. Inject styles for the floating celebration elements
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes floatUp {
+      0% { transform: translateY(105vh) translateX(0) scale(0.5); opacity: 0; }
+      10% { opacity: 0.7; }
+      90% { opacity: 0.4; }
+      100% { transform: translateY(-10vh) translateX(var(--drift)) scale(1.2); opacity: 0; }
+    }
+    @keyframes fadeInMessage {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .celebration-particle {
+      position: fixed;
+      bottom: -50px;
+      pointer-events: none;
+      z-index: 999;
+      animation: floatUp linear infinite;
+      font-family: serif;
+    }
+  `;
+  document.head.appendChild(style);
+  
+  // 4. Start spawning romantic floating elements continuously
+  setInterval(() => {
+    const particle = document.createElement('div');
+    particle.className = 'celebration-particle';
+    
+    // Mix up hearts and stars
+    particle.innerHTML = Math.random() > 0.4 ? '❤️' : '✨';
+    
+    // Randomize positioning and speeds so it looks natural
+    particle.style.left = Math.random() * 100 + 'vw';
+    const duration = Math.random() * 4 + 5; // 5 to 9 seconds
+    particle.style.animationDuration = duration + 's';
+    particle.style.fontSize = (Math.random() * 16 + 14) + 'px';
+    particle.style.setProperty('--drift', (Math.random() * 100 - 50) + 'px');
+    
+    document.body.appendChild(particle);
+    
+    // Clean up elements after they float off-screen
+    setTimeout(() => particle.remove(), duration * 1000);
+  }, 350);
+}
+
 function updateCountdown(){
   const now = new Date();
   let diff = ANNIVERSARY_DATE - now;
-  if(diff < 0) diff = 0;
+  
+  // If the time is up or passed, freeze at zero and trigger the celebration
+  if(diff <= 0) {
+    diff = 0;
+    triggerCelebration();
+  }
 
   const days = Math.floor(diff / (1000*60*60*24));
   const hours = Math.floor((diff / (1000*60*60)) % 24);
   const mins = Math.floor((diff / (1000*60)) % 60);
   const secs = Math.floor((diff / 1000) % 60);
 
-  document.getElementById('cd-days').textContent = String(days).padStart(2,'0');
-  document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
-  document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
-  document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+  // Only update clock numbers if the celebration hasn't cleared them out yet
+  if(!celebrated) {
+    document.getElementById('cd-days').textContent = String(days).padStart(2,'0');
+    document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+    document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
+    document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+  }
 }
 updateCountdown();
 setInterval(updateCountdown, 1000);
 document.getElementById('partner-name').textContent = PARTNER_NAME;
-
 /* ============ BUILD GALLERY ============ */
 const galleryEl = document.getElementById('gallery');
 PHOTOS.forEach((photo, i) => {
